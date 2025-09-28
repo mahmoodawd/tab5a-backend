@@ -14,7 +14,7 @@ public class MealRequestDto {
     private String description;
     private MultipartFile image;
     private String videoUrl;
-    private String categoryId;
-    private String chefId;
+    private Long categoryId;
+    private Long chefId;
     private Map<String, String> ingredients;
 }

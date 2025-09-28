@@ -9,6 +9,6 @@ import java.util.UUID;
 @Getter
 @Setter
 public class UserFavoriteRequestDto {
-    private String mealId;
+    private Long mealId;
     private UUID userId;
 }

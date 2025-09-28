@@ -10,9 +10,6 @@ import java.time.Instant;
 @Setter
 public class UserFavoriteResponseDto {
     private Long id;
-
     private MealResponseDto meal;
-
     private Instant createdAt;
-
 }
