@@ -40,12 +40,12 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public CategoryResponseDto save(CategoryRequestDto category) throws CategoryAlreadyExistException {
-        if (categoryRepository.existsByTitle(category.getTitle()))
-            throw new CategoryAlreadyExistException(category.getTitle());
+    public CategoryResponseDto save(CategoryRequestDto categoryRequest) throws CategoryAlreadyExistException {
+        if (categoryRepository.existsByTitle(categoryRequest.getTitle()))
+            throw new CategoryAlreadyExistException(categoryRequest.getTitle());
 
-        Category categoryToSave = categoryMapper.categoryRequestDtoToCategory(category);
-        String imageStoragePath = uploadService.uploadImage(category.getImage(), ImageType.CATEGORY);
+        Category categoryToSave = categoryMapper.categoryRequestDtoToCategory(categoryRequest);
+        String imageStoragePath = uploadService.uploadImage(categoryRequest.getImage(), ImageType.CATEGORY);
         categoryToSave.setImagePath(imageStoragePath);
         Category savedCategory = categoryRepository.save(categoryToSave);
         return categoryMapper.CategoryToCategoryResponseDto(savedCategory);

@@ -11,5 +11,5 @@ public interface CategoryService {
 
     CategoryResponseDto findById(Long id);
 
-    CategoryResponseDto save(CategoryRequestDto category) throws CategoryAlreadyExistException;
+    CategoryResponseDto save(CategoryRequestDto categoryRequest) throws CategoryAlreadyExistException;
 }
