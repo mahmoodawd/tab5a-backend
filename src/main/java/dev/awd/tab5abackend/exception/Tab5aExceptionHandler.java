@@ -11,8 +11,8 @@ import java.time.Instant;
 @ControllerAdvice
 public class Tab5aExceptionHandler {
 
-    @ExceptionHandler(CategoryAlreadyExistException.class)
-    public ResponseEntity<ErrorResponse> handleCategoryAlreadyExist(CategoryAlreadyExistException ex) {
+    @ExceptionHandler(ResourceAlreadyExistException.class)
+    public ResponseEntity<ErrorResponse> handleCategoryAlreadyExist(ResourceAlreadyExistException ex) {
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(new ErrorResponse(ex.getMessage(), Instant.now()));
