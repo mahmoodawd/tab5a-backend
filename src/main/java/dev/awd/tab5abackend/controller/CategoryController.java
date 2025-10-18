@@ -2,8 +2,10 @@ package dev.awd.tab5abackend.controller;
 
 import dev.awd.tab5abackend.dto.request.CategoryRequestDto;
 import dev.awd.tab5abackend.dto.response.CategoryResponseDto;
+import dev.awd.tab5abackend.exception.CategoryAlreadyExistException;
 import dev.awd.tab5abackend.service.CategoryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -27,8 +29,8 @@ public class CategoryController {
         return ResponseEntity.ok(categoryService.findById(id));
     }
 
-    @PutMapping("/categories")
-    public ResponseEntity<Void> newCategory(@RequestBody CategoryRequestDto requestDto) {
+    @PutMapping(value = "/categories", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Void> newCategory(@ModelAttribute CategoryRequestDto requestDto) throws CategoryAlreadyExistException {
         CategoryResponseDto savedCategory = categoryService.save(requestDto);
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()           // /categories

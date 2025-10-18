@@ -28,7 +28,7 @@ public class Category {
     private String imagePath;
 
     @ColumnDefault("now()")
-    @Column(name = "created_at")
+    @Column(name = "created_at", insertable = false, updatable = false)
     private Instant createdAt;
 
 }
