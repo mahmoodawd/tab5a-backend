@@ -28,7 +28,7 @@ public class Chef {
     private String avatar;
 
     @ColumnDefault("now()")
-    @Column(name = "created_at")
+    @Column(name = "created_at", insertable = false, updatable = false)
     private Instant createdAt;
 
 }
