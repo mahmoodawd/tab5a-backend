@@ -42,7 +42,7 @@ public class Meal {
     private BigDecimal ratingAvg;
 
     @ColumnDefault("now()")
-    @Column(name = "added_at")
+    @Column(name = "added_at", insertable = false, updatable = false)
     private Instant addedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
