@@ -1,6 +1,5 @@
 package dev.awd.tab5abackend.mapper;
 
-import dev.awd.tab5abackend.dto.request.UserRequestDto;
 import dev.awd.tab5abackend.dto.response.UserResponseDto;
 import dev.awd.tab5abackend.mapper.resolver.ImageMapping;
 import dev.awd.tab5abackend.mapper.resolver.ImageUrlResolver;
@@ -14,11 +13,7 @@ import org.mapstruct.MappingConstants;
         uses = {ImageUrlResolver.class, MultipartFileResolver.class})
 public interface UserMapper {
 
-    @Mapping(target = "avatar", source = "avatar", qualifiedBy = ImageMapping.class)
+    @Mapping(target = "fullName", source = "name")
+    @Mapping(target = "avatarUrl", source = "avatar", qualifiedBy = ImageMapping.class)
     UserResponseDto userToUserResponseDto(User user);
-
-    @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    User userRequestDtoToUser(UserRequestDto userRequestDto);
 }

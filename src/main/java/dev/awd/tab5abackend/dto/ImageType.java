@@ -8,6 +8,7 @@ public enum ImageType {
     CATEGORY("categories"),
     MEAL("meals"),
     INGREDIENT("ingredients"),
+    USER("users"),
     CHEF("chefs");
 
     private final String folder;
