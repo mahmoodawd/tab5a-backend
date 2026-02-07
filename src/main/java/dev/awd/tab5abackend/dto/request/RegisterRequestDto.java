@@ -1,14 +1,16 @@
 package dev.awd.tab5abackend.dto.request;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.web.multipart.MultipartFile;
 
 @Setter
 @Getter
-public class UserRequestDto {
+@Builder
+public class RegisterRequestDto {
     private String name;
     private String email;
     private String mobile;
-    private MultipartFile avatar;
+    //    private MultipartFile avatar;
+    private String password;
 }
