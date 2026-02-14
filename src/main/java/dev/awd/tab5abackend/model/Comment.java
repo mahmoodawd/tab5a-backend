@@ -6,12 +6,16 @@ import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 @Getter
 @Setter
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "comments")
 public class Comment {
     @Id
@@ -23,7 +27,11 @@ public class Comment {
     @Column(name = "body", nullable = false, length = Integer.MAX_VALUE)
     private String body;
 
-    @ColumnDefault("now()")
+    @ColumnDefault("0")
+    @Column(name = "rating", precision = 3, scale = 2)
+    private BigDecimal rating;
+
+    @CreatedDate
     @Column(name = "created_at")
     private Instant createdAt;
 

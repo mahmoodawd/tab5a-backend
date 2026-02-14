@@ -4,6 +4,7 @@ package dev.awd.tab5abackend.dto.response;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 @Getter
@@ -14,10 +15,10 @@ public class CommentResponseDto {
 
     private String body;
 
+    private BigDecimal rating;
+
     private Instant createdAt;
 
-    private MealResponseDto meal;
-
-    private UserResponseDto user;
+    private CommentAuthorResponseDto author;
 
 }

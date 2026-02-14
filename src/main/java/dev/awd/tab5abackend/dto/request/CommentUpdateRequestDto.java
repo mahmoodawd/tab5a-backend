@@ -5,11 +5,10 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 
 @Getter
 @Setter
-public class CommentRequestDto {
+public class CommentUpdateRequestDto {
     private String body;
     private BigDecimal rating;
 }

@@ -13,14 +13,14 @@ import org.mapstruct.MappingConstants;
                 IngredientsResolver.class, CommentsResolver.class})
 public interface CommentMapper {
 
-    @Mapping(target = "meal.category.imageUrl", source = "meal.category.imagePath", qualifiedBy = ImageMapping.class)
-    @Mapping(target = "meal.imageUrl", source = "meal.imagePath", qualifiedBy = ImageMapping.class)
-    @Mapping(target = "meal.comments", source = "meal.id")
-    @Mapping(target = "meal.ingredients", source = "meal.id")
+
+    @Mapping(target = "author.fullName", source = "user.name")
+    @Mapping(target = "author.avatarUrl", source = "user.avatar", qualifiedBy = ImageMapping.class)
     CommentResponseDto commentToCommentResponseDto(Comment comment);
 
-    @Mapping(target = "user", source = "userId")
-    @Mapping(target = "meal", source = "mealId")
+
+    @Mapping(target = "user", ignore = true)
+    @Mapping(target = "meal", ignore = true)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     Comment commentRequestDtoToComment(CommentRequestDto commentRequestDto);
