@@ -8,7 +8,7 @@ import dev.awd.tab5abackend.mapper.resolver.ImageUrlResolver;
 import dev.awd.tab5abackend.model.Role;
 import dev.awd.tab5abackend.model.User;
 import dev.awd.tab5abackend.repository.UserRepository;
-import org.junit.jupiter.api.BeforeEach;
+import dev.awd.tab5abackend.util.DataMaskingUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,10 +39,8 @@ class UserServiceTest {
     @Mock
     ImageUrlResolver imageUrlResolver;
 
-    @BeforeEach
-    void setup() {
-        userService = new UserServiceImpl(userRepository, uploadService, userMapper, imageUrlResolver);
-    }
+    @Spy
+    DataMaskingUtil dataMaskingUtil;
 
 
     @Test
@@ -52,11 +51,13 @@ class UserServiceTest {
                 "profile", "test.png", "image/png", "fake image".getBytes()
         );
 
-        when(userRepository.findByEmail(userEmail)).thenReturn(Optional.of(User.builder()
+        User user = User.builder()
                 .name("Test User")
                 .mobile("123456789")
                 .role(Role.USER)
-                .build()));
+                .build();
+        when(userRepository.findByEmail(userEmail)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenReturn(user);
         when(uploadService.uploadImage(avatar, ImageType.USER)).thenReturn("samplePath");
         when(imageUrlResolver.toUrl("samplePath")).thenReturn("sampleUrl");
         String responseUrl = userService.uploadAvatar(userEmail, avatar);

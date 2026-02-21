@@ -49,4 +49,28 @@ public class DataMaskingUtil {
                     cleaned.substring(cleaned.length() - 4);
         }
     }
+
+    public String maskName(String name) {
+        if (name == null || name.isEmpty()) {
+            return "***";
+        }
+
+        String[] parts = name.split("\\s+");
+        StringBuilder masked = new StringBuilder();
+
+        for (int i = 0; i < parts.length; i++) {
+            if (i > 0) {
+                masked.append(" ");
+            }
+
+            String part = parts[i];
+            if (part.length() > 1) {
+                masked.append(part.charAt(0)).append("***");
+            } else {
+                masked.append("*");
+            }
+        }
+
+        return masked.toString();
+    }
 }
