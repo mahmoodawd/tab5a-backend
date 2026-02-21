@@ -9,13 +9,15 @@ import dev.awd.tab5abackend.mapper.CategoryMapper;
 import dev.awd.tab5abackend.model.Category;
 import dev.awd.tab5abackend.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 
-@RequiredArgsConstructor
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
@@ -24,30 +26,58 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public List<CategoryResponseDto> findAll() {
-        return
-                categoryRepository
-                        .findAll()
-                        .stream()
-                        .map(categoryMapper::CategoryToCategoryResponseDto)
-                        .toList();
+        log.debug("Fetching all categories");
+
+        List<CategoryResponseDto> categories = categoryRepository
+                .findAll()
+                .stream()
+                .map(categoryMapper::CategoryToCategoryResponseDto)
+                .toList();
+
+        log.info("Retrieved {} categories", categories.size());
+        return categories;
     }
 
     @Override
     public CategoryResponseDto findById(Long id) {
+        log.info("Fetching category with id: {}", id);
+
         return categoryRepository.findById(id)
                 .map(categoryMapper::CategoryToCategoryResponseDto)
-                .orElseThrow(() -> new CategoryNotFoundException(id));
+                .orElseThrow(() -> {
+                    log.warn("Category not found with id: {}", id);
+                    return new CategoryNotFoundException(id);
+                });
     }
 
     @Override
     public CategoryResponseDto save(CategoryRequestDto categoryRequest) throws CategoryAlreadyExistException {
-        if (categoryRepository.existsByTitle(categoryRequest.getTitle()))
-            throw new CategoryAlreadyExistException(categoryRequest.getTitle());
+        String title = categoryRequest.getTitle();
 
+        log.info("Creating new category: '{}'", title);
+
+        if (categoryRepository.existsByTitle(title)) {
+            log.warn("Category creation failed - duplicate title: '{}'", title);
+            throw new CategoryAlreadyExistException(title);
+        }
+
+        log.debug("Mapping category DTO to entity");
         Category categoryToSave = categoryMapper.categoryRequestDtoToCategory(categoryRequest);
-        String imageStoragePath = uploadService.uploadImage(categoryRequest.getImage(), ImageType.CATEGORY);
+
+        log.debug("Uploading category image");
+        String imageStoragePath = uploadService.uploadImage(
+                categoryRequest.getImage(),
+                ImageType.CATEGORY
+        );
         categoryToSave.setImagePath(imageStoragePath);
+
+        log.debug("Saving category to database");
         Category savedCategory = categoryRepository.save(categoryToSave);
+
+        log.info("Category created successfully: id={}, title='{}', imagePath={}",
+                savedCategory.getId(), title, imageStoragePath);
+
+        log.debug("Mapping category entity to response DTO");
         return categoryMapper.CategoryToCategoryResponseDto(savedCategory);
     }
 }
