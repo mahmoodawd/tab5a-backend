@@ -35,11 +35,15 @@ public class Meal {
 
     @ColumnDefault("0")
     @Column(name = "rating_count")
-    private Integer ratingCount;
+    private int ratingCount;
 
     @ColumnDefault("0")
     @Column(name = "rating_avg", precision = 3, scale = 2)
     private BigDecimal ratingAvg;
+
+    @ColumnDefault("0")
+    @Column(name = "rating_sum", precision = 10, scale = 2)
+    private BigDecimal ratingSum;
 
     @ColumnDefault("now()")
     @Column(name = "added_at", insertable = false, updatable = false)

@@ -21,7 +21,7 @@ public class MealResponseDto {
 
     private String videoUrl;
 
-    private Integer ratingCount;
+    private int ratingCount;
 
     private BigDecimal ratingAvg;
 
