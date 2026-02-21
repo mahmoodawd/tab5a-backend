@@ -5,6 +5,7 @@ import dev.awd.tab5abackend.dto.request.RegisterRequestDto;
 import dev.awd.tab5abackend.dto.response.AuthenticationResponseDto;
 import dev.awd.tab5abackend.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,6 +19,7 @@ public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
 
+    @SneakyThrows
     @PostMapping("/register")
     public ResponseEntity<AuthenticationResponseDto> register(
             @RequestBody RegisterRequestDto request
