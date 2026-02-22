@@ -2,10 +2,12 @@ package dev.awd.tab5abackend.service;
 
 import dev.awd.tab5abackend.dto.request.CategoryRequestDto;
 import dev.awd.tab5abackend.dto.response.CategoryResponseDto;
+import dev.awd.tab5abackend.exception.CategoryAlreadyExistException;
+import dev.awd.tab5abackend.exception.CategoryNotFoundException;
 import dev.awd.tab5abackend.mapper.CategoryMapper;
 import dev.awd.tab5abackend.model.Category;
 import dev.awd.tab5abackend.repository.CategoryRepository;
-import org.junit.jupiter.api.BeforeEach;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -13,10 +15,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,39 +32,68 @@ class CategoryServiceTest {
     private CategoryRepository categoryRepository;
     @Mock
     private CategoryMapper categoryMapper;
+    @Mock
+    UploadService uploadService;
 
-    private Category category;
-    private CategoryResponseDto categoryResponseDto;
-    private CategoryRequestDto categoryRequestDto;
-
-    @BeforeEach
-    void setup() {
-        category = new Category();
-        category.setId(1L);
-        category.setTitle("Test");
-        category.setDescription("Test Description");
-        category.setImagePath("path/to/image");
-
-        categoryResponseDto = new CategoryResponseDto();
-        categoryResponseDto.setId(1L);
-        categoryResponseDto.setTitle("Test");
-        categoryResponseDto.setDescription("Test Description");
-        categoryResponseDto.setImageUrl("localhost/path/to/image");
-
-        categoryRequestDto = new CategoryRequestDto();
-        categoryRequestDto.setTitle("Test");
-        categoryRequestDto.setDescription("Test Description");
-        MockMultipartFile image = new MockMultipartFile("image", "test.png", "image/png", "fake image".getBytes());
-        categoryRequestDto.setImage(image);
-
+    @Test
+    void CategoryService_FindAll_ReturnsAllCategories() {
+        List<Category> categoryList = List.of(
+                new Category(1L, "cat1", "cat1-desc", "images/cat1.png", Instant.now()),
+                new Category(2L, "cat2", "cat2-desc", "images/cat2.png", Instant.now())
+        );
+        when(categoryRepository.findAll()).thenReturn(categoryList);
+        List<CategoryResponseDto> allCategories = categoryService.findAll();
+        assertNotNull(allCategories);
+        assertFalse(allCategories.isEmpty());
+        assertEquals(categoryList.size(), 2);
     }
 
     @Test
     void CategoryService_FindById_ReturnsCategoryResponseDto() {
-        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
-        when(categoryMapper.CategoryToCategoryResponseDto(category)).thenReturn(categoryResponseDto);
+        Category category1 = new Category(1L, "cat1", "cat1-desc", "images/cat1.png", Instant.now());
+        CategoryResponseDto expectedDto = new CategoryResponseDto(1L, "cat1", "cat1-desc", "images/cat1.png", Instant.now());
+
+        when(categoryRepository.findById(anyLong())).thenReturn(Optional.of(category1));
+        when(categoryMapper.CategoryToCategoryResponseDto(category1)).thenReturn(expectedDto);
         CategoryResponseDto responseDto = categoryService.findById(1L);
         assertNotNull(responseDto);
-        assertEquals(responseDto.getDescription(), categoryResponseDto.getDescription());
+        assertEquals(responseDto.getDescription(), category1.getDescription());
     }
+
+    @Test
+    void CategoryService_FindByNonExistingId_ThrowsException() {
+        when(categoryRepository.findById(anyLong())).thenReturn(Optional.empty());
+        assertThrows(CategoryNotFoundException.class, () -> categoryService.findById(1L));
+    }
+
+    @SneakyThrows
+    @Test
+    void CategoryService_CreateNewCategoryWithValidInfo_CategoryCreated() {
+        Category category1 = new Category(1L, "cat1", "cat1-desc", "images/cat1.png", Instant.now());
+        MockMultipartFile image = new MockMultipartFile("image", "test.png", "image/png", "fake image".getBytes());
+        CategoryRequestDto categoryRequest = new CategoryRequestDto("cat1", "cat1-desc", image);
+        CategoryResponseDto expectedDto = new CategoryResponseDto(1L, "cat1", "cat1-desc", "images/cat1.png", Instant.now());
+
+        when(categoryMapper.categoryRequestDtoToCategory(any(CategoryRequestDto.class))).thenReturn(category1);
+        when(categoryRepository.save(any(Category.class))).thenReturn(category1);
+        when(categoryMapper.CategoryToCategoryResponseDto(any(Category.class))).thenReturn(expectedDto);
+
+        CategoryResponseDto responseDto = categoryService.save(categoryRequest);
+
+        assertNotNull(responseDto);
+        assertEquals(responseDto.getId(), 1L);
+    }
+
+    @SneakyThrows
+    @Test
+    void CategoryService_CreateNewCategoryWithExistingTitle_ThrowsException() {
+        MockMultipartFile image = new MockMultipartFile("image", "test.png", "image/png", "fake image".getBytes());
+        CategoryRequestDto categoryRequest = new CategoryRequestDto("cat1", "cat1-desc", image);
+
+        when(categoryRepository.existsByTitle(anyString())).thenReturn(true);
+
+        assertThrows(CategoryAlreadyExistException.class, () -> categoryService.save(categoryRequest));
+
+    }
+
 }
