@@ -31,7 +31,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public List<CommentResponseDto> getMealComments(Long mealId) {
-        log.debug("Fetching Meal Comments: {}", mealId);
+        log.info("Fetching Meal Comments: {}", mealId);
 
         Meal meal = mealRepository.findById(mealId).
                 orElseThrow(() -> {
@@ -74,9 +74,10 @@ public class CommentServiceImpl implements CommentService {
 
         log.info("Comment created successfully: id={}, body='{}', rating={}",
                 savedComment.getId(), shortBody, commentRequest.getRating());
-
-        log.debug("Updating meal rating: {}", mealId);
-        mealRatingService.onMealRatingAdded(toSave.getMeal(), toSave.getRating());
+        if (!toSave.getRating().equals(BigDecimal.ZERO)) {
+            log.debug("Updating meal rating: {}", mealId);
+            mealRatingService.onMealRatingAdded(toSave.getMeal(), toSave.getRating());
+        }
 
         log.debug("Mapping comment entity to response DTO");
         return commentMapper.commentToCommentResponseDto(savedComment);
@@ -136,7 +137,9 @@ public class CommentServiceImpl implements CommentService {
         commentRepository.deleteById(commentId);
         log.info("Comment deleted successfully: id={}", commentId);
 
-        log.debug("Updating meal rating: {}", comment.getMeal().getId());
-        mealRatingService.onMealRatingDeleted(comment.getMeal(), comment.getRating());
+        if (!comment.getRating().equals(BigDecimal.ZERO)) {
+            log.debug("Updating meal rating: {}", comment.getMeal().getId());
+            mealRatingService.onMealRatingDeleted(comment.getMeal(), comment.getRating());
+        }
     }
 }
