@@ -40,7 +40,7 @@ public class ChefServiceImpl implements ChefService {
 
     @Override
     public ChefResponseDto findById(Long id) {
-        log.debug("Fetching chef with id: {}", id);
+        log.info("Fetching chef with id: {}", id);
 
         return chefRepository.findById(id)
                 .map(chefMapper::chefToChefResponseDto)
