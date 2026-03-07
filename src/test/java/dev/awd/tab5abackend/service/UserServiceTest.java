@@ -16,13 +16,17 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
@@ -88,6 +92,44 @@ class UserServiceTest {
         assertNotNull(response.getUsers());
         assertEquals(response.getCount(), 1);
         assertTrue(response.getUsers().contains(userMapper.userToUserResponseDto(user)));
+    }
+
+    @Test
+    void UserService_FindByEmail_ReturnsUser() {
+        User user = User.builder().name("test-user").email("test-user@email.com").build();
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(user));
+        UserDetails response = userService.loadUserByUsername(user.getEmail());
+        assertNotNull(response);
+        assertNotNull(response.getUsername());
+        assertEquals(response.getUsername(), "test-user@email.com");
+    }
+
+    @Test
+    void UserService_FindByNonExistingEmail_ThrowsException() {
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+        assertThrows(UsernameNotFoundException.class, () -> userService.loadUserByUsername(""));
+    }
+
+    @Test
+    void UserService_GrantAdminAccess_UpdatesUser() {
+        User user = User.builder().id(UUID.randomUUID()).name("test-user")
+                .role(Role.USER).email("test-user@email.com").build();
+        when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenReturn(user);
+        userService.grantAdminPermissions(user.getId());
+        assertEquals(user.getRole(), Role.ADMIN);
+        verify(userRepository).save(any(User.class));
+
+    }
+
+    @Test
+    void UserService_GrantAdminForAdmin_DoNothing() {
+        User user = User.builder().id(UUID.randomUUID()).name("test-user").email("test-user@email.com").role(Role.ADMIN).build();
+        when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(user));
+        userService.grantAdminPermissions(user.getId());
+
+        verify(userRepository, never()).save(any(User.class));
+        assertEquals(user.getRole(), Role.ADMIN);
     }
 
 

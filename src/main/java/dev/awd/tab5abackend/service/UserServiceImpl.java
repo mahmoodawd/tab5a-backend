@@ -94,6 +94,11 @@ public class UserServiceImpl implements UserService {
             return new UserNotFoundException(userId.toString());
         });
 
+        if (targetUser.getRole().equals(Role.ADMIN)) {
+            log.info("User already admin...Skipping");
+            return;
+        }
+
         targetUser.setRole(Role.ADMIN);
 
         log.debug("saving user to database");
