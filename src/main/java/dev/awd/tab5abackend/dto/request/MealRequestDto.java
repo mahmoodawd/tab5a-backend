@@ -1,6 +1,7 @@
 package dev.awd.tab5abackend.dto.request;
 
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
@@ -9,6 +10,7 @@ import java.util.Map;
 
 @Setter
 @Getter
+@Builder
 public class MealRequestDto {
     private String title;
     private String description;
