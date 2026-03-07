@@ -1,13 +1,17 @@
 package dev.awd.tab5abackend.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Setter
 @Getter
 @Entity
 @Table(name = "ingredients")
+@AllArgsConstructor
+@NoArgsConstructor
 public class Ingredient {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ingredients_id_gen")
