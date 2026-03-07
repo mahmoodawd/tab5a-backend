@@ -31,6 +31,8 @@ class IngredientServiceTest {
     private IngredientRepository ingredientRepository;
     @Mock
     private IngredientMapper ingredientMapper;
+    @Mock
+    private UploadService uploadService;
 
     @Test
     void IngredientService_FindAll_ReturnsAllIngredients() {
