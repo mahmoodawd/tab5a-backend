@@ -29,7 +29,7 @@ public class CategoryController {
         return ResponseEntity.ok(categoryService.findById(id));
     }
 
-    @PutMapping(value = "/categories", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/categories", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> newCategory(@ModelAttribute CategoryRequestDto requestDto) throws CategoryAlreadyExistException {
         CategoryResponseDto savedCategory = categoryService.save(requestDto);
         URI location = ServletUriComponentsBuilder

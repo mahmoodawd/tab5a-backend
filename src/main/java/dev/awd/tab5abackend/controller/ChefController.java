@@ -29,7 +29,7 @@ public class ChefController {
         return ResponseEntity.ok(chefService.findById(id));
     }
 
-    @PutMapping(value = "/chefs", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/chefs", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> newChef(@ModelAttribute ChefRequestDto requestDto) throws ChefAlreadyExistException {
         ChefResponseDto savedChef = chefService.save(requestDto);
         URI location = ServletUriComponentsBuilder

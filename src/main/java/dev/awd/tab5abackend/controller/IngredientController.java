@@ -29,7 +29,7 @@ public class IngredientController {
         return ResponseEntity.ok(ingredientService.findById(id));
     }
 
-    @PutMapping(value = "/ingredients", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/ingredients", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> newIngredient(@ModelAttribute IngredientRequestDto requestDto) throws IngredientAlreadyExistException {
         IngredientResponseDto savedIngredient = ingredientService.save(requestDto);
         URI location = ServletUriComponentsBuilder
