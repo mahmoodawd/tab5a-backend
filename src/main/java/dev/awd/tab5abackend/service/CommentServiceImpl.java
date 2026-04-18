@@ -4,13 +4,11 @@ import dev.awd.tab5abackend.dto.request.CommentRequestDto;
 import dev.awd.tab5abackend.dto.request.CommentUpdateRequestDto;
 import dev.awd.tab5abackend.dto.response.CommentResponseDto;
 import dev.awd.tab5abackend.exception.CommentNotFoundException;
-import dev.awd.tab5abackend.exception.MealNotFoundException;
 import dev.awd.tab5abackend.mapper.CommentMapper;
 import dev.awd.tab5abackend.model.Comment;
 import dev.awd.tab5abackend.model.Meal;
 import dev.awd.tab5abackend.model.User;
 import dev.awd.tab5abackend.repository.CommentRepository;
-import dev.awd.tab5abackend.repository.MealRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,20 +22,16 @@ import java.util.Objects;
 @Slf4j
 public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
-    private final MealRepository mealRepository;
     private final CommentMapper commentMapper;
     private final MealRatingService mealRatingService;
+    private final MealService mealService;
 
 
     @Override
     public List<CommentResponseDto> getMealComments(Long mealId) {
         log.info("Fetching Meal Comments: {}", mealId);
 
-        Meal meal = mealRepository.findById(mealId).
-                orElseThrow(() -> {
-                    log.warn("Meal not fount with id: {}", mealId);
-                    return new MealNotFoundException(mealId);
-                });
+        Meal meal = mealService.findEntityById(mealId);
 
         List<CommentResponseDto> mealComments = commentRepository.findAllByMeal(meal)
                 .stream().map(commentMapper::commentToCommentResponseDto).toList();
@@ -51,11 +45,7 @@ public class CommentServiceImpl implements CommentService {
         log.debug("Fetching comment with id: {}", commentId);
 
         return commentMapper
-                .commentToCommentResponseDto(commentRepository.findById(commentId)
-                        .orElseThrow(() -> {
-                            log.warn("comment not found with id: {}", commentId);
-                            return new CommentNotFoundException(commentId);
-                        }));
+                .commentToCommentResponseDto(findEntityById(commentId));
     }
 
     @Override
@@ -68,7 +58,7 @@ public class CommentServiceImpl implements CommentService {
 
         log.debug("Populating comment user and meal");
         toSave.setUser(user);
-        toSave.setMeal(mealRepository.findById(mealId).orElseThrow(() -> new MealNotFoundException(mealId)));
+        toSave.setMeal(mealService.findEntityById(mealId));
         log.debug("Saving comment to database");
         Comment savedComment = commentRepository.save(toSave);
 
@@ -128,11 +118,7 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public void deleteComment(Long commentId) {
         log.info("Deleting comment: {}", commentId);
-        Comment comment = commentRepository
-                .findById(commentId).orElseThrow(() -> {
-                    log.warn("comment not found with id: {}", commentId);
-                    return new CommentNotFoundException(commentId);
-                });
+        Comment comment = findEntityById(commentId);
 
         commentRepository.deleteById(commentId);
         log.info("Comment deleted successfully: id={}", commentId);
@@ -142,4 +128,14 @@ public class CommentServiceImpl implements CommentService {
             mealRatingService.onMealRatingDeleted(comment.getMeal(), comment.getRating());
         }
     }
+
+    @Override
+    public Comment findEntityById(Long id) {
+        return commentRepository
+                .findById(id).orElseThrow(() -> {
+                    log.warn("comment not found with id: {}", id);
+                    return new CommentNotFoundException(id);
+                });
+    }
+
 }

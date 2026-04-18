@@ -9,7 +9,6 @@ import dev.awd.tab5abackend.mapper.CommentMapper;
 import dev.awd.tab5abackend.model.Comment;
 import dev.awd.tab5abackend.model.Meal;
 import dev.awd.tab5abackend.repository.CommentRepository;
-import dev.awd.tab5abackend.repository.MealRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -35,7 +34,7 @@ class CommentServiceTest {
     CommentRepository commentRepository;
 
     @Mock
-    MealRepository mealRepository;
+    MealService mealService;
 
     @Mock
     CommentMapper commentMapper;
@@ -48,7 +47,7 @@ class CommentServiceTest {
     public void CommentService_GetMealComments_ReturnsCommentList() {
         List<Comment> commentsList = List.of(new Comment());
 
-        when(mealRepository.findById(anyLong())).thenReturn(Optional.of(new Meal()));
+        when(mealService.findEntityById(anyLong())).thenReturn(new Meal());
         when(commentRepository.findAllByMeal(any(Meal.class))).thenReturn(commentsList);
 
         List<CommentResponseDto> mealComments = commentService.getMealComments(123L);
@@ -59,7 +58,7 @@ class CommentServiceTest {
 
     @Test
     public void CommentService_GetMealCommentsNonExistingMeal_ThrowsException() {
-        when(mealRepository.findById(anyLong())).thenReturn(Optional.empty());
+        when(mealService.findEntityById(anyLong())).thenThrow(new MealNotFoundException(1L));
 
         assertThrows(MealNotFoundException.class, () -> commentService.getMealComments(1L));
     }
@@ -94,7 +93,7 @@ class CommentServiceTest {
 
         when(commentRepository.save(any(Comment.class))).thenReturn(comment);
         when(commentMapper.commentRequestDtoToComment(any(CommentRequestDto.class))).thenReturn(comment);
-        when(mealRepository.findById(anyLong())).thenReturn(Optional.of(new Meal()));
+        when(mealService.findEntityById(anyLong())).thenReturn(new Meal());
         when(commentMapper.commentToCommentResponseDto(any(Comment.class))).thenReturn(expectedDto);
 
         CommentResponseDto commentResponse = commentService.addNewComment(commentRequest, 1L, null);
@@ -112,7 +111,7 @@ class CommentServiceTest {
 
         when(commentRepository.save(any(Comment.class))).thenReturn(comment);
         when(commentMapper.commentRequestDtoToComment(any(CommentRequestDto.class))).thenReturn(comment);
-        when(mealRepository.findById(anyLong())).thenReturn(Optional.of(new Meal()));
+        when(mealService.findEntityById(anyLong())).thenReturn(new Meal());
         when(commentMapper.commentToCommentResponseDto(any(Comment.class))).thenReturn(expectedDto);
 
         CommentResponseDto commentResponse = commentService.addNewComment(commentRequest, 1L, null);

@@ -3,6 +3,7 @@ package dev.awd.tab5abackend.service;
 import dev.awd.tab5abackend.dto.request.CategoryRequestDto;
 import dev.awd.tab5abackend.dto.response.CategoryResponseDto;
 import dev.awd.tab5abackend.exception.CategoryAlreadyExistException;
+import dev.awd.tab5abackend.model.Category;
 
 import java.util.List;
 
@@ -12,4 +13,6 @@ public interface CategoryService {
     CategoryResponseDto findById(Long id);
 
     CategoryResponseDto save(CategoryRequestDto categoryRequest) throws CategoryAlreadyExistException;
+
+    Category findEntityById(Long id);
 }

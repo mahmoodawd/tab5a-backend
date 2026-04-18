@@ -3,6 +3,7 @@ package dev.awd.tab5abackend.service;
 import dev.awd.tab5abackend.dto.request.CommentRequestDto;
 import dev.awd.tab5abackend.dto.request.CommentUpdateRequestDto;
 import dev.awd.tab5abackend.dto.response.CommentResponseDto;
+import dev.awd.tab5abackend.model.Comment;
 import dev.awd.tab5abackend.model.User;
 
 import java.util.List;
@@ -17,4 +18,8 @@ public interface CommentService {
     CommentResponseDto updateComment(Long commentId, CommentUpdateRequestDto commentRequest);
 
     void deleteComment(Long commentId);
+
+    Comment findEntityById(Long id);
+
+
 }

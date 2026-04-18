@@ -2,6 +2,7 @@ package dev.awd.tab5abackend.service;
 
 import dev.awd.tab5abackend.dto.request.MealIngredientRequestDto;
 import dev.awd.tab5abackend.dto.request.MealRequestDto;
+import dev.awd.tab5abackend.dto.response.CommentResponseDto;
 import dev.awd.tab5abackend.dto.response.IngredientResponseDto;
 import dev.awd.tab5abackend.dto.response.MealIngredientResponseDto;
 import dev.awd.tab5abackend.dto.response.MealResponseDto;
@@ -12,7 +13,8 @@ import dev.awd.tab5abackend.mapper.CommentMapper;
 import dev.awd.tab5abackend.mapper.MealIngredientMapper;
 import dev.awd.tab5abackend.mapper.MealMapper;
 import dev.awd.tab5abackend.model.*;
-import dev.awd.tab5abackend.repository.*;
+import dev.awd.tab5abackend.repository.MealIngredientRepository;
+import dev.awd.tab5abackend.repository.MealRepository;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,19 +44,19 @@ class MealServiceTest {
     @Mock
     private UploadService uploadService;
     @Mock
-    private MealIngredientRepository mealIngredientRepository;
+    private CategoryService categoryService;
     @Mock
-    private IngredientRepository ingredientRepository;
+    private ChefService chefService;
+    @Mock
+    private IngredientService ingredientService;
+    @Mock
+    private CommentService commentService;
+    @Mock
+    private MealIngredientRepository mealIngredientRepository;
     @Mock
     private MealIngredientMapper mealIngredientMapper;
     @Mock
     private CommentMapper commentMapper;
-    @Mock
-    private CommentRepository commentRepository;
-    @Mock
-    private CategoryRepository categoryRepository;
-    @Mock
-    private ChefRepository chefRepository;
 
 
     @Test
@@ -78,8 +80,8 @@ class MealServiceTest {
 
         when(mealRepository.findById(anyLong())).thenReturn(Optional.of(meal));
         when(mealMapper.mealToMealResponseDto(meal)).thenReturn(expectedDto);
-        when(mealIngredientRepository.findAllByMealId(anyLong())).thenReturn(getMealIngredients());
-        when(commentRepository.findAllByMealId(anyLong())).thenReturn(getMealComments());
+        when(ingredientService.getMealIngredients(anyLong())).thenReturn(getMealIngredients());
+        when(commentService.getMealComments(anyLong())).thenReturn(getMealComments());
 
         MealResponseDto responseDto = mealService.findById(1L);
         assertNotNull(responseDto);
@@ -125,17 +127,16 @@ class MealServiceTest {
 
         when(mealMapper.mealRequestDtoToMeal(any(MealRequestDto.class))).thenReturn(meal);
         when(mealRepository.save(any(Meal.class))).thenReturn(meal);
-        when(ingredientRepository.findOneByTitle(anyString())).thenReturn(Optional.of(createIngredient()));
         when(mealMapper.mealToMealResponseDto(any(Meal.class))).thenReturn(expectedDto);
-        when(categoryRepository.findById(anyLong()))
-                .thenReturn(Optional.of(new Category(0L, "cat1", "desc", "", Instant.now())));
-        when(chefRepository.findById(anyLong())).thenReturn(Optional.of(new Chef(1L, "Chef", "bio", "", Instant.now())));
+        when(categoryService.findEntityById(anyLong()))
+                .thenReturn(new Category(0L, "cat1", "desc", "", Instant.now()));
+        when(chefService.findEntityById(anyLong())).thenReturn(new Chef(1L, "Chef", "bio", "", Instant.now()));
 
         MealResponseDto responseDto = mealService.save(MealRequest);
 
         assertNotNull(responseDto);
         assertEquals(responseDto.getId(), 1L);
-        verify(mealIngredientRepository, times(1)).saveAll(any());
+        verify(ingredientService, times(1)).insertIngredients(any(Meal.class), any());
 
     }
 
@@ -209,20 +210,20 @@ class MealServiceTest {
                 .toList();
     }
 
-    private List<MealIngredient> getMealIngredients() {
+    private List<MealIngredientResponseDto> getMealIngredients() {
         return List.of(
-                new MealIngredient(null, createMeal(1L, "new Meal"), createIngredient("ing1"), "1 cup"),
-                new MealIngredient(null, createMeal(1L, "new Meal"), createIngredient("ing2"), "1 spoon"),
-                new MealIngredient(null, createMeal(1L, "new Meal"), createIngredient("ing3"), "1 piece")
+                new MealIngredientResponseDto(new IngredientResponseDto(1L, "", ""), "1 cup"),
+                new MealIngredientResponseDto(new IngredientResponseDto(2L, "", ""), "1 spoon"),
+                new MealIngredientResponseDto(new IngredientResponseDto(3L, "", ""), "1 piece")
+
         );
     }
 
-    private List<Comment> getMealComments() {
+    private List<CommentResponseDto> getMealComments() {
         return List.of(
-                new Comment(1L, "Good", BigDecimal.ONE, Instant.now(), createMeal(1L, "meal"), null),
-                new Comment(2L, "Good", BigDecimal.ONE, Instant.now(), createMeal(1L, "meal"), null),
-                new Comment(3L, "Good", BigDecimal.ONE, Instant.now(), createMeal(1L, "meal"), null)
-
+                new CommentResponseDto(1L, "Good", BigDecimal.ONE, Instant.now(), null),
+                new CommentResponseDto(2L, "Good", BigDecimal.ONE, Instant.now(), null),
+                new CommentResponseDto(3L, "Good", BigDecimal.ONE, Instant.now(), null)
         );
     }
 

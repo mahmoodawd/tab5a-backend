@@ -42,12 +42,7 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryResponseDto findById(Long id) {
         log.info("Fetching category with id: {}", id);
 
-        return categoryRepository.findById(id)
-                .map(categoryMapper::CategoryToCategoryResponseDto)
-                .orElseThrow(() -> {
-                    log.warn("Category not found with id: {}", id);
-                    return new CategoryNotFoundException(id);
-                });
+        return categoryMapper.CategoryToCategoryResponseDto(findEntityById(id));
     }
 
     @Override
@@ -79,5 +74,14 @@ public class CategoryServiceImpl implements CategoryService {
 
         log.debug("Mapping category entity to response DTO");
         return categoryMapper.CategoryToCategoryResponseDto(savedCategory);
+    }
+
+    @Override
+    public Category findEntityById(Long id) {
+        return categoryRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("Category not found with id: {}", id);
+                    return new CategoryNotFoundException(id);
+                });
     }
 }

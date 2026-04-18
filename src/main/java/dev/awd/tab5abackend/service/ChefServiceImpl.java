@@ -42,12 +42,7 @@ public class ChefServiceImpl implements ChefService {
     public ChefResponseDto findById(Long id) {
         log.info("Fetching chef with id: {}", id);
 
-        return chefRepository.findById(id)
-                .map(chefMapper::chefToChefResponseDto)
-                .orElseThrow(() -> {
-                    log.warn("chef not found with id: {}", id);
-                    return new ChefNotFoundException(id);
-                });
+        return chefMapper.chefToChefResponseDto(findEntityById(id));
     }
 
     @Override
@@ -74,5 +69,14 @@ public class ChefServiceImpl implements ChefService {
 
         log.debug("Mapping chef entity to response DTO");
         return chefMapper.chefToChefResponseDto(savedChef);
+    }
+
+    @Override
+    public Chef findEntityById(Long id) {
+        return chefRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("chef not found with id: {}", id);
+                    return new ChefNotFoundException(id);
+                });
     }
 }

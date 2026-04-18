@@ -4,6 +4,7 @@ import dev.awd.tab5abackend.dto.request.MealRequestDto;
 import dev.awd.tab5abackend.dto.response.MealResponseDto;
 import dev.awd.tab5abackend.exception.MealAlreadyExistException;
 import dev.awd.tab5abackend.exception.MealCreationException;
+import dev.awd.tab5abackend.model.Meal;
 
 import java.util.List;
 
@@ -14,4 +15,6 @@ public interface MealService {
     MealResponseDto findById(Long id);
 
     MealResponseDto save(MealRequestDto mealRequestDto) throws MealAlreadyExistException, MealCreationException;
+
+    Meal findEntityById(Long id);
 }

@@ -1,23 +1,23 @@
 package dev.awd.tab5abackend.service;
 
 import dev.awd.tab5abackend.dto.ImageType;
-import dev.awd.tab5abackend.dto.request.MealIngredientRequestDto;
 import dev.awd.tab5abackend.dto.request.MealRequestDto;
 import dev.awd.tab5abackend.dto.response.CommentResponseDto;
 import dev.awd.tab5abackend.dto.response.MealIngredientResponseDto;
 import dev.awd.tab5abackend.dto.response.MealResponseDto;
-import dev.awd.tab5abackend.exception.*;
-import dev.awd.tab5abackend.mapper.CommentMapper;
-import dev.awd.tab5abackend.mapper.MealIngredientMapper;
+import dev.awd.tab5abackend.exception.MealAlreadyExistException;
+import dev.awd.tab5abackend.exception.MealCreationException;
+import dev.awd.tab5abackend.exception.MealNotFoundException;
 import dev.awd.tab5abackend.mapper.MealMapper;
-import dev.awd.tab5abackend.model.*;
-import dev.awd.tab5abackend.repository.*;
+import dev.awd.tab5abackend.model.Category;
+import dev.awd.tab5abackend.model.Chef;
+import dev.awd.tab5abackend.model.Meal;
+import dev.awd.tab5abackend.repository.MealRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -27,16 +27,13 @@ import java.util.List;
 public class MealServiceImpl implements MealService {
 
     private final MealRepository mealRepository;
-    private final UploadService uploadService;
     private final MealMapper mealMapper;
 
-    private final IngredientRepository ingredientRepository;
-    private final MealIngredientRepository mealIngredientRepository;
-    private final MealIngredientMapper mealIngredientMapper;
-    private final CommentRepository commentRepository;
-    private final CommentMapper commentMapper;
-    private final CategoryRepository categoryRepository;
-    private final ChefRepository chefRepository;
+    private final UploadService uploadService;
+    private final IngredientService ingredientService;
+    private final CommentService commentService;
+    private final CategoryService categoryService;
+    private final ChefService chefService;
 
 
     @Override
@@ -58,31 +55,20 @@ public class MealServiceImpl implements MealService {
     public MealResponseDto findById(Long id) {
         log.debug("Fetching meal with id: {}", id);
 
-        return mealRepository.findById(id)
-                .map(mealMapper::mealToMealResponseDto)
-                .map(response -> {
-                    log.debug("Fetching ingredients for meal: {}", id);
-                    List<MealIngredientResponseDto> ingredients = mealIngredientRepository
-                            .findAllByMealId(id)
-                            .stream()
-                            .map(mealIngredientMapper::toResponseDto)
-                            .toList();
+        Meal targetMeal = findEntityById(id);
 
-                    log.debug("Fetching comments for meal: {}", id);
-                    List<CommentResponseDto> comments = commentRepository
-                            .findAllByMealId(id)
-                            .stream()
-                            .map(commentMapper::commentToCommentResponseDto)
-                            .toList();
+        MealResponseDto response = mealMapper.mealToMealResponseDto(targetMeal);
 
-                    response.setIngredients(ingredients);
-                    response.setComments(comments);
-                    return response;
-                })
-                .orElseThrow(() -> {
-                    log.error("Meal not found with id: {}", id);
-                    return new MealNotFoundException(id);
-                });
+        log.debug("Fetching ingredients for meal: {}", id);
+        List<MealIngredientResponseDto> ingredients = ingredientService.getMealIngredients(id);
+        response.setIngredients(ingredients);
+
+        log.debug("Fetching comments for meal: {}", id);
+        List<CommentResponseDto> comments = commentService.getMealComments(id);
+        response.setComments(comments);
+
+
+        return response;
     }
 
     @Transactional
@@ -98,10 +84,9 @@ public class MealServiceImpl implements MealService {
         }
 
         try {
-            Category category = categoryRepository.findById(mealRequestDto.getCategoryId()).orElseThrow(() ->
-                    new CategoryNotFoundException(mealRequestDto.getCategoryId()));
+            Category category = categoryService.findEntityById(mealRequestDto.getCategoryId());
 
-            Chef chef = chefRepository.findById(mealRequestDto.getChefId()).orElseThrow(() -> new ChefNotFoundException(mealRequestDto.getChefId()));
+            Chef chef = chefService.findEntityById(mealRequestDto.getChefId());
 
             log.debug("Mapping DTO to entity for meal: '{}'", title);
             Meal mealToSave = mealMapper.mealRequestDtoToMeal(mealRequestDto);
@@ -120,7 +105,7 @@ public class MealServiceImpl implements MealService {
             Meal savedMeal = mealRepository.save(mealToSave);
 
             log.info("Inserting Ingredients...");
-            insertIngredients(savedMeal, mealRequestDto.getIngredients());
+            ingredientService.insertIngredients(savedMeal, mealRequestDto.getIngredients());
 
             log.info("Meal created successfully: id={}, title='{}', imagePath={}",
                     savedMeal.getId(), title, imageStoragePath);
@@ -132,23 +117,12 @@ public class MealServiceImpl implements MealService {
         }
     }
 
-    private void insertIngredients(Meal meal, List<MealIngredientRequestDto> ingredientsMeasures) {
-        List<MealIngredient> mealIngredients = new ArrayList<>();
-        log.debug("Preparing ingredients list");
-        ingredientsMeasures.forEach(item -> {
-            Ingredient ingredient = ingredientRepository.findOneByTitle(item.getIngredient().toLowerCase())
-                    .orElseThrow(() -> {
-                        log.error("Non existing ingredient: {}", item.getIngredient());
-                        return new IngredientNotFoundException(item.getIngredient());
-                    });
-            MealIngredient mealIngredient = new MealIngredient();
-            mealIngredient.setId(new MealIngredientId(meal.getId(), ingredient.getId()));
-            mealIngredient.setMeal(meal);
-            mealIngredient.setIngredient(ingredient);
-            mealIngredient.setMeasure(item.getMeasure());
-            mealIngredients.add(mealIngredient);
-        });
-        log.debug("Ingredients List prepared, inserting.....");
-        mealIngredientRepository.saveAll(mealIngredients);
+    @Override
+    public Meal findEntityById(Long id) {
+       return mealRepository.findById(id).
+                orElseThrow(() -> {
+                    log.warn("Meal not fount with id: {}", id);
+                    return new MealNotFoundException(id);
+                });
     }
 }
