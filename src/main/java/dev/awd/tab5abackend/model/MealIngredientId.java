@@ -2,7 +2,9 @@ package dev.awd.tab5abackend.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.Hibernate;
 
@@ -12,9 +14,13 @@ import java.util.Objects;
 @Getter
 @Setter
 @Embeddable
+@AllArgsConstructor
+@NoArgsConstructor
 public class MealIngredientId implements java.io.Serializable {
     @Serial
     private static final long serialVersionUID = -490845094242126834L;
+
+
     @Column(name = "meal_id", nullable = false)
     private Long mealId;
 

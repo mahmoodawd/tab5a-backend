@@ -9,4 +9,8 @@ public class IngredientNotFoundException extends ResourceNotFoundException {
     public IngredientNotFoundException(Long id) {
         super("Ingredient not found: " + id);
     }
+
+    public IngredientNotFoundException(String title) {
+        super("Ingredient not found: " + title);
+    }
 }

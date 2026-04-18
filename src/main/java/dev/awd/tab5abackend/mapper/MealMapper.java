@@ -17,8 +17,10 @@ public interface MealMapper {
     @Mapping(target = "ingredients", source = "id")
     @Mapping(target = "comments", source = "id")
     @Mapping(target = "category.imageUrl", source = "category.imagePath", qualifiedBy = ImageMapping.class)
+    @Mapping(target = "chef.avatar", source = "chef.avatar", qualifiedBy = ImageMapping.class)
     MealResponseDto mealToMealResponseDto(Meal meal);
 
+    @Mapping(target = "ratingSum", ignore = true)
     @Mapping(target = "imagePath", source = "image")
     @Mapping(target = "chef", source = "chefId")
     @Mapping(target = "category", source = "categoryId")
