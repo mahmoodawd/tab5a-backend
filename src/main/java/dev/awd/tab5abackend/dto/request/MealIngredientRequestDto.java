@@ -9,7 +9,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Setter
 @Getter
-public class MealIngredientDto {
+public class MealIngredientRequestDto {
     private String ingredient;
     private String measure;
 }

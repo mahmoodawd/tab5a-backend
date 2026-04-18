@@ -18,5 +18,5 @@ public class MealRequestDto {
     private String videoUrl;
     private Long categoryId;
     private Long chefId;
-    private List<MealIngredientDto> ingredients;
+    private List<MealIngredientRequestDto> ingredients;
 }

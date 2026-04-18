@@ -1,18 +1,18 @@
 package dev.awd.tab5abackend.service;
 
-import dev.awd.tab5abackend.dto.request.MealIngredientDto;
+import dev.awd.tab5abackend.dto.request.MealIngredientRequestDto;
 import dev.awd.tab5abackend.dto.request.MealRequestDto;
+import dev.awd.tab5abackend.dto.response.IngredientResponseDto;
 import dev.awd.tab5abackend.dto.response.MealIngredientResponseDto;
 import dev.awd.tab5abackend.dto.response.MealResponseDto;
 import dev.awd.tab5abackend.exception.MealAlreadyExistException;
 import dev.awd.tab5abackend.exception.MealCreationException;
 import dev.awd.tab5abackend.exception.MealNotFoundException;
+import dev.awd.tab5abackend.mapper.CommentMapper;
+import dev.awd.tab5abackend.mapper.MealIngredientMapper;
 import dev.awd.tab5abackend.mapper.MealMapper;
-import dev.awd.tab5abackend.model.Ingredient;
-import dev.awd.tab5abackend.model.Meal;
-import dev.awd.tab5abackend.repository.IngredientRepository;
-import dev.awd.tab5abackend.repository.MealIngredientRepository;
-import dev.awd.tab5abackend.repository.MealRepository;
+import dev.awd.tab5abackend.model.*;
+import dev.awd.tab5abackend.repository.*;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,11 +21,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 
+import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -36,6 +34,7 @@ class MealServiceTest {
 
     @InjectMocks
     private MealServiceImpl mealService;
+
     @Mock
     private MealRepository mealRepository;
     @Mock
@@ -46,6 +45,17 @@ class MealServiceTest {
     private MealIngredientRepository mealIngredientRepository;
     @Mock
     private IngredientRepository ingredientRepository;
+    @Mock
+    private MealIngredientMapper mealIngredientMapper;
+    @Mock
+    private CommentMapper commentMapper;
+    @Mock
+    private CommentRepository commentRepository;
+    @Mock
+    private CategoryRepository categoryRepository;
+    @Mock
+    private ChefRepository chefRepository;
+
 
     @Test
     void MealService_FindAll_ReturnsAllMeals() {
@@ -68,9 +78,16 @@ class MealServiceTest {
 
         when(mealRepository.findById(anyLong())).thenReturn(Optional.of(meal));
         when(mealMapper.mealToMealResponseDto(meal)).thenReturn(expectedDto);
+        when(mealIngredientRepository.findAllByMealId(anyLong())).thenReturn(getMealIngredients());
+        when(commentRepository.findAllByMealId(anyLong())).thenReturn(getMealComments());
+
         MealResponseDto responseDto = mealService.findById(1L);
         assertNotNull(responseDto);
         assertEquals(responseDto.getTitle(), meal.getTitle());
+        assertNotNull(responseDto.getIngredients());
+        assertEquals(responseDto.getIngredients().size(), 3);
+        assertNotNull(responseDto.getComments());
+        assertEquals(responseDto.getComments().size(), 3);
     }
 
     @Test
@@ -97,7 +114,11 @@ class MealServiceTest {
     void MealService_CreateNewMealWithValidInfo_MealCreated() {
         Meal meal = createMeal(1L, "meal1");
         MockMultipartFile image = new MockMultipartFile("image", "test.png", "image/png", "fake image".getBytes());
-        MealRequestDto MealRequest = MealRequestDto.builder().title("meal1").image(image)
+        MealRequestDto MealRequest = MealRequestDto.builder()
+                .title("meal1")
+                .image(image)
+                .categoryId(1L)
+                .chefId(1L)
                 .ingredients(getIngredients())
                 .build();
         MealResponseDto expectedDto = createMealResponse(1L, "meal1");
@@ -106,6 +127,9 @@ class MealServiceTest {
         when(mealRepository.save(any(Meal.class))).thenReturn(meal);
         when(ingredientRepository.findOneByTitle(anyString())).thenReturn(Optional.of(createIngredient()));
         when(mealMapper.mealToMealResponseDto(any(Meal.class))).thenReturn(expectedDto);
+        when(categoryRepository.findById(anyLong()))
+                .thenReturn(Optional.of(new Category(0L, "cat1", "desc", "", Instant.now())));
+        when(chefRepository.findById(anyLong())).thenReturn(Optional.of(new Chef(1L, "Chef", "bio", "", Instant.now())));
 
         MealResponseDto responseDto = mealService.save(MealRequest);
 
@@ -127,10 +151,6 @@ class MealServiceTest {
                 .ingredients(getIngredients())
                 .build();
 
-        when(mealMapper.mealRequestDtoToMeal(mealRequest)).thenReturn(meal);
-        when(mealRepository.save(any(Meal.class))).thenReturn(meal);
-        when(ingredientRepository.findOneByTitle(anyString())).thenReturn(Optional.empty());
-
         assertThrows(MealCreationException.class, () -> mealService.save(mealRequest));
     }
 
@@ -151,15 +171,15 @@ class MealServiceTest {
                 .addedAt(Instant.now())
                 .imageUrl("api/images/" + title + ".png")
                 .description("Description of: " + title)
-                .ingredients(createMealIngredients())
+//                .ingredients(createMealIngredients())
                 .build();
     }
 
-    private List<MealIngredientDto> getIngredients() {
+    private List<MealIngredientRequestDto> getIngredients() {
         return List.of(
-                new MealIngredientDto("Tomato", "1 Piece"),
-                new MealIngredientDto("macaroni", "2 Cups"),
-                new MealIngredientDto("garlic", "4 Cloves")
+                new MealIngredientRequestDto("Tomato", "1 Piece"),
+                new MealIngredientRequestDto("macaroni", "2 Cups"),
+                new MealIngredientRequestDto("garlic", "4 Cloves")
         );
     }
 
@@ -175,6 +195,47 @@ class MealServiceTest {
                 "garlic",
                 "4 Cloves");
 
-        return Collections.emptyList();
+        return ingredients.entrySet().stream()
+                .map(entry -> {
+                    IngredientResponseDto ingredient = new IngredientResponseDto();
+                    ingredient.setTitle(entry.getKey());
+
+                    MealIngredientResponseDto mealIngredient = new MealIngredientResponseDto();
+                    mealIngredient.setIngredient(ingredient);
+                    mealIngredient.setMeasure(entry.getValue());
+
+                    return mealIngredient;
+                })
+                .toList();
     }
+
+    private List<MealIngredient> getMealIngredients() {
+        return List.of(
+                new MealIngredient(null, createMeal(1L, "new Meal"), createIngredient("ing1"), "1 cup"),
+                new MealIngredient(null, createMeal(1L, "new Meal"), createIngredient("ing2"), "1 spoon"),
+                new MealIngredient(null, createMeal(1L, "new Meal"), createIngredient("ing3"), "1 piece")
+        );
+    }
+
+    private List<Comment> getMealComments() {
+        return List.of(
+                new Comment(1L, "Good", BigDecimal.ONE, Instant.now(), createMeal(1L, "meal"), null),
+                new Comment(2L, "Good", BigDecimal.ONE, Instant.now(), createMeal(1L, "meal"), null),
+                new Comment(3L, "Good", BigDecimal.ONE, Instant.now(), createMeal(1L, "meal"), null)
+
+        );
+    }
+
+    private List<Ingredient> createIngredientEntityList(int count) {
+        List<Ingredient> ingredients = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            ingredients.add(createIngredient("ingredient" + i));
+        }
+        return ingredients;
+    }
+
+    private Ingredient createIngredient(String title) {
+        return new Ingredient(new Random().nextLong(), title, "");
+    }
+
 }

@@ -9,8 +9,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
-        uses = {ImageUrlResolver.class, MultipartFileResolver.class, UserResolver.class, MealResolver.class,
-                IngredientsResolver.class, CommentsResolver.class})
+        uses = {ImageUrlResolver.class, MultipartFileResolver.class})
 public interface CommentMapper {
 
 
