@@ -1,10 +1,12 @@
 package dev.awd.tab5abackend.config;
 
+import dev.awd.tab5abackend.model.Role;
 import dev.awd.tab5abackend.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -35,8 +37,11 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/images/**").permitAll()
                         .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/images/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/meals/*/comments/**").authenticated()
+                        .requestMatchers(HttpMethod.POST).hasAuthority(Role.ADMIN.name())
+                        .requestMatchers(HttpMethod.DELETE).hasAuthority(Role.ADMIN.name())
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
@@ -66,3 +71,5 @@ public class SecurityConfig {
         return source;
     }
 }
+
+
