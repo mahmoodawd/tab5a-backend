@@ -4,6 +4,7 @@ import dev.awd.tab5abackend.dto.request.MealRequestDto;
 import dev.awd.tab5abackend.dto.response.MealResponseDto;
 import dev.awd.tab5abackend.exception.MealAlreadyExistException;
 import dev.awd.tab5abackend.exception.MealCreationException;
+import dev.awd.tab5abackend.service.MealFacade;
 import dev.awd.tab5abackend.service.MealService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -19,15 +20,16 @@ import java.util.List;
 public class MealController {
 
     private final MealService mealService;
+    private final MealFacade mealFacade;
 
     @GetMapping("/meals")
     public ResponseEntity<List<MealResponseDto>> getAllMeals() {
-        return ResponseEntity.ok(mealService.findAll());
+        return ResponseEntity.ok(mealFacade.getAllMealsWithDetails());
     }
 
     @GetMapping("meals/{id}")
     public ResponseEntity<MealResponseDto> getMeal(@PathVariable Long id) {
-        return ResponseEntity.ok(mealService.findById(id));
+        return ResponseEntity.ok(mealFacade.getFullMealDetails(id));
     }
 
     @PostMapping(value = "/meals", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

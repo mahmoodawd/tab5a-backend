@@ -101,12 +101,15 @@ public class IngredientServiceImpl implements IngredientService {
 
     @Override
     public List<MealIngredientResponseDto> getMealIngredients(Long mealId) {
-        log.debug("Fetching ingredients for meal: {}", mealId);
-        return mealIngredientRepository
+        log.info("Fetching Meal [{}] ingredients", mealId);
+        List<MealIngredientResponseDto> ingredients = mealIngredientRepository
                 .findAllByMealId(mealId)
                 .stream()
                 .map(mealIngredientMapper::toResponseDto)
                 .toList();
+        log.info("Retrieved {} ingredients", ingredients.size());
+
+        return ingredients;
 
     }
 

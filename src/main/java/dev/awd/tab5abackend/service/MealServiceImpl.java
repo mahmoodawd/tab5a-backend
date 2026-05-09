@@ -2,8 +2,6 @@ package dev.awd.tab5abackend.service;
 
 import dev.awd.tab5abackend.dto.ImageType;
 import dev.awd.tab5abackend.dto.request.MealRequestDto;
-import dev.awd.tab5abackend.dto.response.CommentResponseDto;
-import dev.awd.tab5abackend.dto.response.MealIngredientResponseDto;
 import dev.awd.tab5abackend.dto.response.MealResponseDto;
 import dev.awd.tab5abackend.exception.MealAlreadyExistException;
 import dev.awd.tab5abackend.exception.MealCreationException;
@@ -31,7 +29,6 @@ public class MealServiceImpl implements MealService {
 
     private final UploadService uploadService;
     private final IngredientService ingredientService;
-    private final CommentService commentService;
     private final CategoryService categoryService;
     private final ChefService chefService;
 
@@ -57,18 +54,7 @@ public class MealServiceImpl implements MealService {
 
         Meal targetMeal = findEntityById(id);
 
-        MealResponseDto response = mealMapper.mealToMealResponseDto(targetMeal);
-
-        log.debug("Fetching ingredients for meal: {}", id);
-        List<MealIngredientResponseDto> ingredients = ingredientService.getMealIngredients(id);
-        response.setIngredients(ingredients);
-
-        log.debug("Fetching comments for meal: {}", id);
-        List<CommentResponseDto> comments = commentService.getMealComments(id);
-        response.setComments(comments);
-
-
-        return response;
+        return mealMapper.mealToMealResponseDto(targetMeal);
     }
 
     @Transactional
@@ -119,7 +105,7 @@ public class MealServiceImpl implements MealService {
 
     @Override
     public Meal findEntityById(Long id) {
-       return mealRepository.findById(id).
+        return mealRepository.findById(id).
                 orElseThrow(() -> {
                     log.warn("Meal not fount with id: {}", id);
                     return new MealNotFoundException(id);

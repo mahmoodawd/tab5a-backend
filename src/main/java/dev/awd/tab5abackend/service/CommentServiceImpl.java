@@ -29,11 +29,9 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public List<CommentResponseDto> getMealComments(Long mealId) {
-        log.info("Fetching Meal Comments: {}", mealId);
+        log.info("Fetching Meal [{}] Comments", mealId);
 
-        Meal meal = mealService.findEntityById(mealId);
-
-        List<CommentResponseDto> mealComments = commentRepository.findAllByMeal(meal)
+        List<CommentResponseDto> mealComments = commentRepository.findAllByMealId(mealId)
                 .stream().map(commentMapper::commentToCommentResponseDto).toList();
 
         log.info("Retrieved {} comments", mealComments.size());
